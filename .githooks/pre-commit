@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Redirect output to stderr.
+exec 1>&2
+
+branch=`git symbolic-ref HEAD | sed -e 's:^refs/heads/::'`
+user=`git config user.name`
+
+./.githooks/authorize.sh $user $branch .githooks/commit_users.conf
+if test $? -ne 0; then
+	echo "No permission to commit [$branch] branch for $user."
+	exit 1
+fi
+
+./.githooks/pretest.sh $branch .githooks/commit_pretest.conf
+if test $? -ne 0; then
+	echo "Fail to pre-test on commit [$branch]."
+	exit 1
+fi
+
+exit 0
